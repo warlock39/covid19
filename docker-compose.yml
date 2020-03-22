@@ -1,0 +1,26 @@
+version: "3.0"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+  postgres:
+    image: postgres:12
+    restart: always
+    volumes:
+      - pg_data:/var/lib/postgresql/data/pgdata
+      - /tmp:/tmp
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+volumes:
+    pg_data:
+
