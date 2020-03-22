@@ -51,4 +51,21 @@ SQL;
             'date' => $date->format('Y-m-d')
         ]);
     }
+
+    public function casesDaily(): array
+    {
+        $query = <<<SQL
+SELECT
+  datetime,
+  state_id,
+  SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
+  SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+FROM 
+     cases 
+GROUP BY datetime, state_id
+ORDER BY datetime DESC
+SQL;
+        return $this->conn->fetchAll($query);
+    }
 }

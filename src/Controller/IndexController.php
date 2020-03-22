@@ -46,6 +46,41 @@ class IndexController extends AbstractController
     }
 
     /**
+     * @Route("/api/daily", name="daily")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function daily(Request $request): JsonResponse
+    {
+        // detailed data
+        if ((int) $request->get('detailed') === 1) {
+            $data = [];
+            foreach($this->stat->casesDaily() as $row) {
+                $data[$row['datetime']][$row['state_id']][] = [
+                    'confirmed' => $row['confirmed'],
+                    'deaths' => $row['deaths'],
+                    'recovered' => $row['recovered'],
+                ];
+            }
+        } else {
+            $data = [];
+            foreach($this->stat->casesDaily() as $row) {
+                if (!array_key_exists($row['datetime'], $data)) {
+                    $data[$row['datetime']] = [
+                        'confirmed' => 0,
+                        'deaths' => 0,
+                        'recovered' => 0,
+                    ];
+                }
+                $data[$row['datetime']]['confirmed'] += $row['confirmed'];
+                $data[$row['datetime']]['deaths'] += $row['deaths'];
+                $data[$row['datetime']]['recovered'] += $row['recovered'];
+            }
+        }
+        return $this->json($data);
+    }
+
+    /**
      * @Route("/api/{date}", name="byDate")
      * @param Request $request
      * @param string $date
