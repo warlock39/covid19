@@ -29,7 +29,7 @@ WHERE
 GROUP BY state_id
 SQL;
         return $this->conn->fetchAll($query, [
-            'date' => $date->format('Y-m-d')
+            'date' => $date->format('Y-m-d 23:59:59')
         ]);
     }
 
@@ -44,7 +44,7 @@ SELECT
 FROM 
      cases 
 WHERE 
-      datetime = :date
+      datetime::date = :date
 GROUP BY state_id
 SQL;
         return $this->conn->fetchAll($query, [
