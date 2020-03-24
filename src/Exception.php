@@ -6,10 +6,9 @@ use Throwable;
 
 class Exception extends \Exception
 {
+    private string $errorCode;
     /** @var string */
-    private $errorCode;
-    /** @var string */
-    private $errorMsg;
+    private string $errorMsg;
 
     public function __construct(string $errorCode, string $errorMsg)
     {
