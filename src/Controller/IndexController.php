@@ -2,24 +2,24 @@
 
 namespace App\Controller;
 
-use App\DataProvider;
+use App\DataProvider\DataProvider;
+use App\DataProvider\Factory as DataProviderFactory;
 use App\Exception;
+use App\DataSource;
 use App\When;
-use DateTimeImmutable;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Throwable;
 
 class IndexController extends AbstractController
 {
-    /** @var DataProvider */
-    private $stat;
+    private DataProvider $stat;
 
-    public function __construct(DataProvider $dataProvider)
+    public function __construct(DataProviderFactory $factory)
     {
-        $this->stat = $dataProvider;
+        $this->stat = $factory->create();
     }
     /**
      * @Route("/api/today", name="today")
