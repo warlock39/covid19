@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\DataProvider\DataProvider;
 use App\DataProvider\Factory as DataProviderFactory;
+use App\DataProvider\TkmediaDataProvider;
 use App\Exception;
 use App\DataSource;
 use App\When;
@@ -85,12 +86,13 @@ class IndexController extends AbstractController
      */
     public function actualize(
         Request $request,
-        Connection $connection
+        Connection $connection,
+        TkmediaDataProvider $dataProvider
     ): JsonResponse
     {
         $date = When::fromString($request->get('date') ?? date('Y-m-d'));
 
-        (new DataSource\Tkmedia($connection))->actualize($date);
+        (new DataSource\Tkmedia($connection, $dataProvider))->actualize($date);
 
         return $this->json([
             'success' => true,

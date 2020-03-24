@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\DataSource;
 
+use App\DataProvider\TkmediaDataProvider;
 use App\Exception;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
@@ -10,10 +11,12 @@ use Symfony\Component\DomCrawler\Crawler;
 class Tkmedia
 {
     private Connection $connection;
+    private TkmediaDataProvider $dataProvider;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, TkmediaDataProvider $dataProvider)
     {
         $this->connection = $connection;
+        $this->dataProvider = $dataProvider;
     }
 
     /**
@@ -52,6 +55,52 @@ class Tkmedia
                 'deaths' => $deaths,
             ]);
         }
+
+        $this->deaggregate($date);
+    }
+
+    /**
+     * @param DateTimeImmutable $date
+     */
+    public function deaggregate(DateTimeImmutable $date): void
+    {
+        $this->connection->delete('cases_tkmedia', ['datetime::date' => $date->format('Y-m-d')]);
+
+        $today = $this->dataProvider->casesBy($date);
+        $yesterday = $this->dataProvider->casesBy($date->modify('-1 day'));
+        $yesterday = $this->groupByState($yesterday);
+
+        $cases = array_map(static function ($case) use ($yesterday) {
+            $case['confirmed'] -= $yesterday[$case['state_id']]['confirmed'] ?? 0;
+            $case['recovered'] -= $yesterday[$case['state_id']]['recovered'] ?? 0;
+            $case['deaths'] -= $yesterday[$case['state_id']]['deaths'] ?? 0;
+            return $case;
+        }, $today);
+        $cases = array_filter($cases, static function ($case) {
+            return $case['confirmed'] > 0 || $case['recovered'] > 0 || $case['deaths'] > 0;
+        });
+
+        foreach ($cases as $case) {
+            foreach (['confirmed', 'recovered', 'deaths'] as $event) {
+                if ($case[$event] > 0) {
+                    $this->connection->insert('cases_tkmedia', [
+                        'datetime' => $date->format(DATE_RFC3339_EXTENDED),
+                        'state_id' => $case['state_id'],
+                        'event' => $event,
+                        'count' => $case[$event],
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function groupByState(array $cases): array
+    {
+        $data = [];
+        foreach ($cases as $row) {
+            $data[$row['state_id']] = $row;
+        }
+        return $data;
     }
 
     public static array $statesMap = [
