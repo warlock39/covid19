@@ -18,6 +18,16 @@ class Exception extends \Exception
         parent::__construct($errorMsg);
     }
 
+    public static function dataSourceNotSupported(): self
+    {
+        return new self(__FUNCTION__, 'Data source not supported');
+    }
+
+    public static function actualizationFailed(string $msg): self
+    {
+        return new self(__FUNCTION__, $msg);
+    }
+
     public function getContext(): array
     {
         return [

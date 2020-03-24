@@ -81,32 +81,38 @@ class IndexController extends AbstractController
     }
 
     /**
+     * @Route("/api/actualize", name="actualize", methods={"POST"})
+     */
+    public function actualize(
+        Request $request,
+        Connection $connection
+    ): JsonResponse
+    {
+        $date = When::fromString($request->get('date') ?? date('Y-m-d'));
+
+        (new DataSource\Tkmedia($connection))->actualize($date);
+
+        return $this->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
      * @Route("/api/{date}", name="byDate")
-     * @param Request $request
-     * @param string $date
-     * @return JsonResponse
-     * @throws \Exception
-     * @throws Throwable
      */
     public function date(Request $request, string $date): JsonResponse
     {
-        $when = $this->createDate($date);
-        $data = $this->stat->casesBy($when);
+        $data = $this->stat->casesBy(When::fromString($date));
 
         return $this->serialize($data, $request);
     }
 
     /**
      * @Route("/api/at/{date}", name="atDate")
-     * @param Request $request
-     * @param string $date
-     * @return JsonResponse
-     * @throws Throwable
      */
     public function at(Request $request, string $date): JsonResponse
     {
-        $when = $this->createDate($date);
-        $data = $this->stat->casesAt($when);
+        $data = $this->stat->casesAt(When::fromString($date));
 
         return $this->serialize($data, $request);
     }
@@ -128,25 +134,6 @@ class IndexController extends AbstractController
         ];
         return $this->json($resp);
     }
-
-    /**
-     * @param string $date
-     * @return DateTimeImmutable
-     * @throws Throwable
-     */
-    private function createDate(string $date): DateTimeImmutable
-    {
-        $when = DateTimeImmutable::createFromFormat('Y-m-d', $date);
-        if (!$when instanceof DateTimeImmutable) {
-            throw Exception::invalidDate('Invalid date provided. Specify date in Y-m-d format');
-        }
-        if ($when > new DateTimeImmutable()) {
-            throw Exception::invalidDate('You specified date in the future. Hope there will be 0 cases. Health everybody!');
-        }
-
-        return $when;
-    }
-
 
     private function projection(array $fields): callable
     {

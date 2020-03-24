@@ -84,7 +84,13 @@
             "config/bootstrap.php"
         ]
     },
+    "symfony/css-selector": {
+        "version": "v5.0.5"
+    },
     "symfony/dependency-injection": {
+        "version": "v5.0.5"
+    },
+    "symfony/dom-crawler": {
         "version": "v5.0.5"
     },
     "symfony/dotenv": {
