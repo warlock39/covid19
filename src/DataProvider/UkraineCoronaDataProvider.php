@@ -64,7 +64,7 @@ SELECT
   SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
 FROM 
      cases 
-GROUP BY datetime, state_id
+GROUP BY datetime::date, state_id
 ORDER BY datetime DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
