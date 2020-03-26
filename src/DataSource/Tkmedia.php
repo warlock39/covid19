@@ -46,10 +46,13 @@ class Tkmedia
         $statesMap = self::$statesMap;
         $this->connection->delete('cases_aggregated_tkmedia', ['date' => $dateStr]);
         foreach ($byStates as [$state, $confirmed, $recovered, $deaths]) {
+            if (!isset($statesMap[$state])) {
+                continue;
+            }
             // TODO use Assert::keyExists($statesMap, $state)
             $this->connection->insert('cases_aggregated_tkmedia', [
                 'date' => $dateStr,
-                'state_id' => $statesMap[$state] ?? $state,
+                'state_id' => $statesMap[$state],
                 'confirmed' => $confirmed,
                 'recovered' => $recovered,
                 'deaths' => $deaths,
@@ -116,7 +119,6 @@ class Tkmedia
         'Полтавская область' => 'ua-pl',
         'Запорожская область' => 'ua-zp',
         'Sevastopol' => 'ua-sc',
-        'Автономная Республика Крым' => 'ua-kr',
         'Черниговская область' => 'ua-ch',
         'Ровенская область' => 'ua-rv',
         'Черновицкая область' => 'ua-cv',
@@ -148,7 +150,6 @@ class Tkmedia
         'Черкаська область'  => 'ua-ck',
         'Чернігівська область'  => 'ua-ch',
         'Чернівецька область'  => 'ua-cv',
-        'Автономна Республіка Крим'  => 'ua-kr',
         'Запорізька область'  => 'ua-zp',
         'Закарпатська область'  => 'ua-zk',
         'Житомирська область'  => 'ua-zt',
