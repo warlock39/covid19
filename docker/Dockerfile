@@ -5,10 +5,14 @@ EXPOSE 8080
 
 RUN add-apt-repository -y ppa:nginx/stable
 RUN add-apt-repository -y ppa:ondrej/php
+RUN add-apt-repository -y ppa:certbot/certbot
 
 RUN apt-get update \
     && apt-get install -y \
+        software-properties-common \
         nginx \
+        python-certbot-nginx \
+        certbot \
         php-pgsql \
         php7.4-fpm \
         php7.4-xml \
@@ -31,6 +35,8 @@ ADD docker/runit/php-fpm.sh /etc/service/php-fpm/run
 ADD docker/runit/nginx.sh /etc/service/nginx/run
 RUN chmod ugo+x /etc/service/php-fpm/run
 RUN chmod ugo+x /etc/service/nginx/run
+
+#RUN certbot --nginx -d ukraine-corona.com  -d www.ukraine-corona.com --email admin@ukraine-corona.com --agree-tos --no-eff-email
 
 
 COPY bin /app/bin/

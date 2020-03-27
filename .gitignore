@@ -1,4 +1,6 @@
 .idea
+docker/certbot-etc/
+docker/certbot-var/
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
