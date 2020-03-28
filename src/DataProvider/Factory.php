@@ -32,9 +32,6 @@ class Factory
             case self::TKMEDIA:
                 return new TkmediaDataProvider($this->connection);
                 break;
-            case self::TABLEAU:
-                return new TableauDataProvider($this->connection);
-                break;
             case self::COMPOSITE:
                 return new CompositeDataProvider(
                     $this->connection,

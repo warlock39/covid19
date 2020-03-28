@@ -63,6 +63,21 @@ class IndexController extends AbstractController
 
         return $this->serialize($data);
     }
+    /**
+     * @Route("/api/detailed", name="detailed")
+     */
+    public function detailed(): JsonResponse
+    {
+        $data = [];
+        foreach($this->stat->casesDailyDetailed() as $row) {
+            $data[$row['datetime']][$row['state_id']][] = [
+                'confirmed' => $row['confirmed'],
+                'deaths' => $row['deaths'],
+                'recovered' => $row['recovered'],
+            ];
+        }
+        return $this->json($data);
+    }
 
     /**
      * @Route("/api/actualize", name="actualize", methods={"POST"})
