@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\DataProvider\DataProvider;
+use App\DataProvider\CompositeDataProvider;
 use App\DataProvider\Factory as DataProviderFactory;
 use App\DataProvider\TkmediaDataProvider;
 use App\Exception;
@@ -16,69 +16,52 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends AbstractController
 {
-    private DataProvider $stat;
+    private CompositeDataProvider $stat;
 
     public function __construct(DataProviderFactory $factory)
     {
-        $this->stat = $factory->create();
-    }
-    /**
-     * @Route("/api/today", name="today")
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function today(Request $request): JsonResponse
-    {
-        $data = $this->stat->casesBy(When::today());
-
-        return $this->serialize($data, $request);
+        $this->stat = $factory->composite();
     }
 
     /**
-     * @Route("/api/yesterday", name="yesterday")
-     * @param Request $request
-     * @return JsonResponse
+     * @Route("/api/new", name="new")
      */
-    public function yesterday(Request $request): JsonResponse
+    public function new(): JsonResponse
     {
-        $data = $this->stat->casesBy(When::yesterday());
+        $data = $this->stat->newCases();
 
-        return $this->serialize($data, $request);
+        return $this->serialize($data);
     }
 
     /**
      * @Route("/api/daily", name="daily")
-     * @param Request $request
-     * @return JsonResponse
      */
-    public function daily(Request $request): JsonResponse
+    public function daily(): JsonResponse
     {
-        // detailed data
-        if ((int) $request->get('detailed') === 1) {
-            $data = [];
-            foreach($this->stat->casesDaily() as $row) {
-                $data[$row['datetime']][$row['state_id']][] = [
-                    'confirmed' => $row['confirmed'],
-                    'deaths' => $row['deaths'],
-                    'recovered' => $row['recovered'],
+        $data = [];
+        foreach($this->stat->casesDaily() as $row) {
+            if (!array_key_exists($row['datetime'], $data)) {
+                $data[$row['datetime']] = [
+                    'confirmed' => 0,
+                    'deaths' => 0,
+                    'recovered' => 0,
                 ];
             }
-        } else {
-            $data = [];
-            foreach($this->stat->casesDaily() as $row) {
-                if (!array_key_exists($row['datetime'], $data)) {
-                    $data[$row['datetime']] = [
-                        'confirmed' => 0,
-                        'deaths' => 0,
-                        'recovered' => 0,
-                    ];
-                }
-                $data[$row['datetime']]['confirmed'] += $row['confirmed'];
-                $data[$row['datetime']]['deaths'] += $row['deaths'];
-                $data[$row['datetime']]['recovered'] += $row['recovered'];
-            }
+            $data[$row['datetime']]['confirmed'] += $row['confirmed'];
+            $data[$row['datetime']]['deaths'] += $row['deaths'];
+            $data[$row['datetime']]['recovered'] += $row['recovered'];
         }
         return $this->json($data);
+    }
+
+    /**
+     * @Route("/api/totals", name="totals")
+     */
+    public function totals(): JsonResponse
+    {
+        $data = $this->stat->casesBy(When::today());
+
+        return $this->serialize($data);
     }
 
     /**
@@ -99,42 +82,13 @@ class IndexController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api/{date}", name="byDate")
-     */
-    public function date(Request $request, string $date): JsonResponse
+    private function serialize(array $data): JsonResponse
     {
-        $data = $this->stat->casesBy(When::fromString($date));
+        $projection = $this->projection(['state_title', 'confirmed', 'deaths', 'recovered']);
 
-        return $this->serialize($data, $request);
-    }
-
-    /**
-     * @Route("/api/at/{date}", name="atDate")
-     */
-    public function at(Request $request, string $date): JsonResponse
-    {
-        $data = $this->stat->casesAt(When::fromString($date));
-
-        return $this->serialize($data, $request);
-    }
-
-    private function serialize(array $data, Request $req): JsonResponse
-    {
-        // short data (default)
-        $projection = static function ($item) {
-            return [$item['state_id'], $item['confirmed']];
-        };
-
-        // detailed data
-        if ((int) $req->get('detailed') === 1) {
-            $projection = $this->projection(['state_title', 'confirmed', 'deaths', 'recovered']);
-        }
-
-        $resp = [
+        return $this->json([
             'data' => array_map($projection, $data),
-        ];
-        return $this->json($resp);
+        ]);
     }
 
     private function projection(array $fields): callable
