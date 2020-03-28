@@ -36,9 +36,6 @@ ADD docker/runit/nginx.sh /etc/service/nginx/run
 RUN chmod ugo+x /etc/service/php-fpm/run
 RUN chmod ugo+x /etc/service/nginx/run
 
-#RUN certbot --nginx -d ukraine-corona.com  -d www.ukraine-corona.com --email admin@ukraine-corona.com --agree-tos --no-eff-email
-
-
 COPY bin /app/bin/
 COPY config /app/config/
 COPY public /app/public/
