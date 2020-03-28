@@ -70,7 +70,7 @@ class IndexController extends AbstractController
     {
         $data = [];
         foreach($this->stat->casesDailyDetailed() as $row) {
-            $data[$row['datetime']][$row['state_id']][] = [
+            $data[$row['datetime']][$row['state_id']] = [
                 'confirmed' => $row['confirmed'],
                 'deaths' => $row['deaths'],
                 'recovered' => $row['recovered'],
