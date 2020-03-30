@@ -16,11 +16,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends AbstractController
 {
-    private CompositeDataProvider $stat;
+    private DataProvider $stat;
 
-    public function __construct(DataProviderFactory $factory)
+    public function __construct(DataProvider $dataProvider)
     {
-        $this->stat = $factory->composite();
+        $this->stat = $dataProvider;
     }
 
     /**

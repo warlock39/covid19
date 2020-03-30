@@ -18,7 +18,7 @@ class Factory
         $this->connection = $connection;
     }
 
-    public function create(): DataProvider
+    public function __invoke()
     {
         $col = $this->connection->fetchColumn("SELECT value FROM settings WHERE key = 'data-source'");
         $name = $col ?: 'ukraine-corona';
@@ -43,10 +43,5 @@ class Factory
             default:
                 return new UkraineCoronaDataProvider($this->connection);
         }
-    }
-
-    public function composite(): CompositeDataProvider
-    {
-        return $this->byName(self::COMPOSITE);
     }
 }
