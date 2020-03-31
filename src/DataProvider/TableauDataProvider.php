@@ -59,7 +59,7 @@ SQL;
     {
         $query = <<<SQL
 SELECT
-    report_date::date,
+    report_date::date AS datetime,
     SUM(confirmed) confirmed,
     SUM(deaths) deaths,
     SUM(recovered) recovered
@@ -67,6 +67,23 @@ FROM
     cases_tableau
 GROUP BY report_date::date
 ORDER BY confirmed DESC;
+SQL;
+        return $this->conn->fetchAll($query);
+    }
+
+    public function casesDailyDetailed(): array
+    {
+        $query = <<<SQL
+SELECT
+    report_date::date AS datetime,
+    state_id,
+    SUM(confirmed) confirmed,
+    SUM(deaths) deaths,
+    SUM(recovered) recovered
+FROM
+    cases_tableau
+GROUP BY report_date::date, state_id
+ORDER BY report_date::date DESC, confirmed DESC;
 SQL;
         return $this->conn->fetchAll($query);
     }

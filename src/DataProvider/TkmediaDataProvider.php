@@ -72,4 +72,20 @@ SQL;
         return $this->conn->fetchAll($query);
     }
 
+    public function casesDailyDetailed(): array
+    {
+        $query = <<<SQL
+SELECT
+  datetime::date,
+  state_id,
+  SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
+  SUM(CASE WHEN event = 'deaths' THEN count ELSE 0 END) AS deaths,
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+FROM 
+     cases_tkmedia
+GROUP BY datetime, state_id
+ORDER BY datetime DESC, confirmed DESC
+SQL;
+        return $this->conn->fetchAll($query);
+    }
 }

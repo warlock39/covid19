@@ -11,4 +11,7 @@ interface DataProvider
     public function casesAt(DateTimeImmutable $date): array;
 
     public function casesDaily(): array;
+
+    public function casesDailyDetailed(): array;
+
 }

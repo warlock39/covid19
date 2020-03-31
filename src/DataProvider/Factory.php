@@ -3,6 +3,7 @@
 namespace App\DataProvider;
 
 
+use App\DataSource\Exception;
 use Doctrine\DBAL\Connection;
 
 class Factory
@@ -10,6 +11,7 @@ class Factory
     public const COMPOSITE = 'composite';
     public const UKRAINE_CORONA = 'ukraine-corona';
     public const TKMEDIA = 'tkmedia';
+    public const TABLEAU = 'tableau';
 
     private Connection $connection;
 
@@ -40,8 +42,14 @@ class Factory
                 );
                 break;
             case self::UKRAINE_CORONA:
-            default:
                 return new UkraineCoronaDataProvider($this->connection);
+            case self::TABLEAU:
+                return new TableauDataProvider($this->connection);
+            default:
+                if (empty($name)) {
+                    return new UkraineCoronaDataProvider($this->connection);
+                }
+                throw Exception::dataSourceNotSupported();
         }
     }
 }
