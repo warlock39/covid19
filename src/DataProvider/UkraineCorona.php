@@ -2,11 +2,11 @@
 
 namespace App\DataProvider;
 
-
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
+use RuntimeException;
 
-class TkmediaDataProvider implements DataProvider
+class UkraineCorona implements DataProvider
 {
     private Connection $conn;
 
@@ -14,25 +14,23 @@ class TkmediaDataProvider implements DataProvider
     {
         $this->conn = $conn;
     }
-
     public function casesBy(DateTimeImmutable $date): array
     {
         $query = <<<SQL
 SELECT
   state_id,
-  confirmed,
-  deaths,
-  recovered
+  SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
+  SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
 FROM 
-  cases_aggregated_tkmedia
+     cases 
 WHERE 
- date = :date AND (
-   confirmed != 0 OR recovered != 0 OR deaths != 0
- )
+      datetime <= :date
+GROUP BY state_id
 ORDER BY confirmed DESC
 SQL;
         return $this->conn->fetchAll($query, [
-            'date' => $date->format('Y-m-d')
+            'date' => $date->format('Y-m-d 23:59:59')
         ]);
     }
 
@@ -45,7 +43,7 @@ SELECT
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
   SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
 FROM 
-     cases_tkmedia
+     cases 
 WHERE 
       datetime::date = :date
 GROUP BY state_id
@@ -62,12 +60,12 @@ SQL;
 SELECT
   datetime::date,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
-  SUM(CASE WHEN event = 'deaths' THEN count ELSE 0 END) AS deaths,
+  SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
   SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
 FROM 
-     cases_tkmedia
-GROUP BY datetime
-ORDER BY datetime DESC, confirmed DESC
+     cases 
+GROUP BY datetime::date
+ORDER BY datetime DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
     }
@@ -79,13 +77,17 @@ SELECT
   datetime::date,
   state_id,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
-  SUM(CASE WHEN event = 'deaths' THEN count ELSE 0 END) AS deaths,
+  SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
   SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
 FROM 
-     cases_tkmedia
-GROUP BY datetime, state_id
-ORDER BY datetime DESC, confirmed DESC
+     cases 
+GROUP BY datetime::date, state_id
+ORDER BY datetime DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
+    }
+    public function newCases(): array
+    {
+        throw new RuntimeException('Not implemented');
     }
 }

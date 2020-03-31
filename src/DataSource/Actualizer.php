@@ -16,16 +16,19 @@ class Actualizer
 
     public const DS_TABLEAU = 'tableau';
     public const DS_TKMEDIA = 'tkmedia';
+    public const DS_RNBO    = 'rnbo';
     public const SUPPORTED_DATASOURCES = [
         self::DS_TABLEAU,
         self::DS_TKMEDIA,
+        self::DS_RNBO,
     ];
 
-    public function __construct(DataSource\Tkmedia $tkmedia, DataSource\Tableau $tableau)
+    public function __construct(DataSource\Tkmedia $tkmedia, DataSource\Tableau $tableau, DataSource\Rnbo $rnbo)
     {
         $this->dataSources = [
             self::DS_TABLEAU => $tableau,
             self::DS_TKMEDIA => $tkmedia,
+            self::DS_RNBO    => $rnbo,
         ];
     }
 

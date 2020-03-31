@@ -7,16 +7,16 @@ namespace App\DataProvider;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 
-class CompositeDataProvider implements DataProvider
+class TkmediaUkraineCorona implements DataProvider
 {
     private Connection $conn;
-    private TkmediaDataProvider $tkmedia;
-    private UkraineCoronaDataProvider $corona;
+    private Tkmedia $tkmedia;
+    private UkraineCorona $corona;
 
     public function __construct(
         Connection $connection,
-        TkmediaDataProvider $tkmedia,
-        UkraineCoronaDataProvider $corona
+        Tkmedia $tkmedia,
+        UkraineCorona $corona
     )
     {
         $this->tkmedia = $tkmedia;

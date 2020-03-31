@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\DataSource;
 
-use App\DataProvider\TkmediaDataProvider;
+use App\DataProvider\Tkmedia AS TkmediaDataProvider;
 use App\Exception;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;

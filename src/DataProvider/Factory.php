@@ -8,10 +8,11 @@ use Doctrine\DBAL\Connection;
 
 class Factory
 {
-    public const COMPOSITE = 'composite';
+    public const TKMEDIA_UKRAINE_CORONA = 'tkmedia.ukraine-corona';
     public const UKRAINE_CORONA = 'ukraine-corona';
     public const TKMEDIA = 'tkmedia';
     public const TABLEAU = 'tableau';
+    public const RNBO = 'rnbo';
 
     private Connection $connection;
 
@@ -32,22 +33,24 @@ class Factory
     {
         switch ($name) {
             case self::TKMEDIA:
-                return new TkmediaDataProvider($this->connection);
+                return new Tkmedia($this->connection);
                 break;
-            case self::COMPOSITE:
-                return new CompositeDataProvider(
+            case self::TKMEDIA_UKRAINE_CORONA:
+                return new TkmediaUkraineCorona(
                     $this->connection,
-                    new TkmediaDataProvider($this->connection),
-                    new UkraineCoronaDataProvider($this->connection),
+                    new Tkmedia($this->connection),
+                    new UkraineCorona($this->connection),
                 );
                 break;
             case self::UKRAINE_CORONA:
-                return new UkraineCoronaDataProvider($this->connection);
+                return new UkraineCorona($this->connection);
             case self::TABLEAU:
-                return new TableauDataProvider($this->connection);
+                return new Tableau($this->connection);
+            case self::RNBO:
+                return new Rnbo($this->connection);
             default:
                 if (empty($name)) {
-                    return new UkraineCoronaDataProvider($this->connection);
+                    return new UkraineCorona($this->connection);
                 }
                 throw Exception::dataSourceNotSupported();
         }
