@@ -1,9 +1,6 @@
 <?php
 namespace App;
 
-
-use Throwable;
-
 class Exception extends \Exception
 {
     private string $errorCode;
@@ -34,13 +31,23 @@ class Exception extends \Exception
             'error_msg' => $this->errorMsg,
         ];
     }
+
+    public function errorCode(): string
+    {
+        return $this->errorCode;
+    }
     public static function noStateId(): Exception
     {
         return new self(__FUNCTION__, 'State ID is required field');
     }
 
-    public static function invalidDate(string $msg): Throwable
+    public static function invalidDate(string $msg): Exception
     {
         return new self(__FUNCTION__, $msg);
+    }
+
+    protected static function msg(string $base, string $detailed = ''): string
+    {
+        return $detailed !== '' ? "$base: $detailed" : $base;
     }
 }

@@ -6,29 +6,68 @@ use App\DataProvider\TkmediaDataProvider;
 use App\Exception;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
+use ErrorException;
+use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
+use Webmozart\Assert\Assert;
 
-class Tkmedia
+class Tkmedia implements DataSource
 {
     private Connection $connection;
     private TkmediaDataProvider $dataProvider;
+    private LoggerInterface $logger;
+    private string $downloadDir;
 
-    public function __construct(Connection $connection, TkmediaDataProvider $dataProvider)
+    public function __construct(Connection $connection, string $actualizerDir, LoggerInterface $logger, TkmediaDataProvider $dataProvider)
     {
         $this->connection = $connection;
         $this->dataProvider = $dataProvider;
+        $this->downloadDir = $actualizerDir;
+        $this->logger = $logger;
     }
 
-    /**
-     * @param DateTimeImmutable $date
-     */
     public function actualize(DateTimeImmutable $date): void
     {
+        $this->logger->info('Start actualization of Tkmedia datasource');
         $dateStr = $date->format('Y-m-d');
 
-        $link = "https://tk.media/coronavirus/{$dateStr}";
+        try {
+            $html = $this->downloadHtml($dateStr);
+        } catch(ErrorException | RuntimeException$e) {
+            $this->logger->critical($e->getMessage());
+            return;
+        }
 
-        $crawler = new Crawler(file_get_contents($link));
+        $byStates = $this->parse($html);
+
+        $this->connection->beginTransaction();
+        $this->connection->delete('cases_aggregated_tkmedia', ['date' => $dateStr]);
+
+        foreach ($byStates as [$state, $confirmed, $recovered, $deaths]) {
+            try {
+                Assert::keyExists(self::STATES_MAP, $state);
+                $this->connection->insert('cases_aggregated_tkmedia', [
+                    'date' => $dateStr,
+                    'state_id' => self::STATES_MAP[$state],
+                    'confirmed' => $confirmed,
+                    'recovered' => $recovered,
+                    'deaths' => $deaths,
+                ]);
+            } catch (InvalidArgumentException $e) {
+                $this->logger->warning($e->getMessage());
+                continue;
+            }
+        }
+        $this->deaggregate($date);
+        $this->connection->commit();
+        $this->logger->info('End of actualization of Tkmedia datasource');
+    }
+
+    private function parse(string $html): array
+    {
+        $crawler = new Crawler($html);
         $today = $crawler->filter('.virus_table_item')->each(static function (Crawler $node) {
             $state = $node->filter('.virus_table_region')->text();
             $confirmed = (int) $node->filter('.virus_table_sick')->text();
@@ -41,25 +80,24 @@ class Tkmedia
             throw Exception::actualizationFailed('TkMedia crawler got no results');
         }
         array_shift($today); // remove "totals" row
-        $byStates = $today;
+        return $today;
+    }
 
-        $statesMap = self::$statesMap;
-        $this->connection->delete('cases_aggregated_tkmedia', ['date' => $dateStr]);
-        foreach ($byStates as [$state, $confirmed, $recovered, $deaths]) {
-            if (!isset($statesMap[$state])) {
-                continue;
-            }
-            // TODO use Assert::keyExists($statesMap, $state)
-            $this->connection->insert('cases_aggregated_tkmedia', [
-                'date' => $dateStr,
-                'state_id' => $statesMap[$state],
-                'confirmed' => $confirmed,
-                'recovered' => $recovered,
-                'deaths' => $deaths,
-            ]);
+    /**
+     * @throws ErrorException
+     * @noinspection PhpDocRedundantThrowsInspection
+     */
+    private function downloadHtml(string $date): string
+    {
+        $dir = $this->downloadDir.'/tkmedia/';
+        if (!file_exists($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $this->downloadDir));
         }
+        $destination = $dir.date('Y_m_d_H_i').'.html';
+        $source = "https://tk.media/coronavirus/{$date}";
+        copy($source, $destination);
 
-        $this->deaggregate($date);
+        return file_get_contents($destination);
     }
 
     /**
@@ -106,58 +144,4 @@ class Tkmedia
         return $data;
     }
 
-    public static array $statesMap = [
-        'Одесская область' => 'ua-od',
-        'Херсонская область' => 'ua-ks',
-        'Киев' => 'ua-kc',
-        'Житомирская область' => 'ua-zt',
-        'Сумская область' => 'ua-sm',
-        'Донецкая область' => 'ua-dt',
-        'Днепропетровская область' => 'ua-dp',
-        'Харьковская область' => 'ua-kk',
-        'Луганская область' => 'ua-lh',
-        'Полтавская область' => 'ua-pl',
-        'Запорожская область' => 'ua-zp',
-        'Sevastopol' => 'ua-sc',
-        'Черниговская область' => 'ua-ch',
-        'Ровенская область' => 'ua-rv',
-        'Черновицкая область' => 'ua-cv',
-        'Ивано-Франковская область' => 'ua-if',
-        'Хмельницкая область' => 'ua-km',
-        'Львовская область' => 'ua-lv',
-        'Тернопольская область' => 'ua-tp',
-        'Закарпатская область' => 'ua-zk',
-        'Волынская область' => 'ua-vo',
-        'Черкасская область' => 'ua-ck',
-        'Кировоградская область' => 'ua-kh',
-        'Киевская область' => 'ua-kv',
-        'Николаевская область' => 'ua-mk',
-        'Винницкая область' => 'ua-vi',
-
-        'Івано-Франківська область'  => 'ua-if',
-        'Кіровоградська область'  => 'ua-kh',
-        'Луганська область'  => 'ua-lh',
-        'Львівська область'  => 'ua-lv',
-        'Миколаївська область'  => 'ua-mk',
-        'Одеська область'  => 'ua-od',
-        'Полтавська область'  => 'ua-pl',
-        'Рівненська область'  => 'ua-rv',
-        'Сумська область'  => 'ua-sm',
-        'Тернопільська область'  => 'ua-tp',
-        'Харківська область'  => 'ua-kk',
-        'Херсонська область'  => 'ua-ks',
-        'Хмельницька область'  => 'ua-km',
-        'Черкаська область'  => 'ua-ck',
-        'Чернігівська область'  => 'ua-ch',
-        'Чернівецька область'  => 'ua-cv',
-        'Запорізька область'  => 'ua-zp',
-        'Закарпатська область'  => 'ua-zk',
-        'Житомирська область'  => 'ua-zt',
-        'Донецька область'  => 'ua-dt',
-        'Дніпропетровська область'  => 'ua-dp',
-        'Волинська область'  => 'ua-vo',
-        'Вінницька область'  => 'ua-vi',
-        'Київська область'  => 'ua-kv',
-        'Київ'  => 'ua-kc',
-    ];
 }

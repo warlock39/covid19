@@ -14,11 +14,11 @@ class When
         return new DateTimeImmutable('yesterday');
     }
 
-    public static function fromString(string $date): DateTimeImmutable
+    public static function fromString(string $date, string $format = 'Y-m-d'): DateTimeImmutable
     {
-        $when = DateTimeImmutable::createFromFormat('Y-m-d', $date);
+        $when = DateTimeImmutable::createFromFormat($format, $date);
         if (!$when instanceof DateTimeImmutable) {
-            throw Exception::invalidDate('Invalid date provided. Specify date in Y-m-d format');
+            throw Exception::invalidDate("Invalid date provided. Specify date in $format format");
         }
         if ($when > new DateTimeImmutable()) {
             throw Exception::invalidDate('You specified date in the future. Hope there will be 0 cases. Health everybody!');

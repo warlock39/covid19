@@ -2,16 +2,11 @@
 
 namespace App\Controller;
 
-use App\DataProvider\CompositeDataProvider;
-use App\DataProvider\Factory as DataProviderFactory;
-use App\DataProvider\TkmediaDataProvider;
+use App\DataProvider\DataProvider;
 use App\Exception;
-use App\DataSource;
 use App\When;
-use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class IndexController extends AbstractController
@@ -77,24 +72,6 @@ class IndexController extends AbstractController
             ];
         }
         return $this->json($data);
-    }
-
-    /**
-     * @Route("/api/actualize", name="actualize", methods={"POST"})
-     */
-    public function actualize(
-        Request $request,
-        Connection $connection,
-        TkmediaDataProvider $dataProvider
-    ): JsonResponse
-    {
-        $date = When::fromString($request->get('date') ?? date('Y-m-d'));
-
-        (new DataSource\Tkmedia($connection, $dataProvider))->actualize($date);
-
-        return $this->json([
-            'success' => true,
-        ]);
     }
 
     private function serialize(array $data): JsonResponse
