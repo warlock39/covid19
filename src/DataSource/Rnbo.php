@@ -52,13 +52,23 @@ class Rnbo implements DataSource
                 Assert::keyExists($row['label'], 'uk');
                 Assert::keyExists(self::STATES_MAP, $row['label']['uk'], "Couldn't not find 'state_id' for {$row['label']['uk']}");
 
+                [
+                    'confirmed' => $confirmed,
+                    'deaths' => $deaths,
+                    'recovered' => $recovered,
+                ] = $row;
+
+                if ($confirmed === $deaths && $deaths === $recovered && $recovered === 0) {
+                    continue;
+                }
+
                 $this->connection->insert('cases_rnbo', [
                     'actualized_at' => (new DateTimeImmutable())->format(DATE_RFC3339_EXTENDED),
                     'report_date' => $date->format('Y-m-d'),
                     'state_id' => self::STATES_MAP[$row['label']['uk']],
-                    'confirmed' => (int) $row['confirmed'],
-                    'recovered' => (int) $row['recovered'],
-                    'deaths' => (int) $row['deaths'],
+                    'confirmed' => $confirmed,
+                    'recovered' => $recovered,
+                    'deaths' => $deaths,
                     'existing' =>  (int) $row['existing'],
                     'suspicion' => (int) $row['suspicion'],
                     'lat' => (float) $row['lat'],

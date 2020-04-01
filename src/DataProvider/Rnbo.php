@@ -67,6 +67,10 @@ SELECT
 FROM 
      cases_rnbo
 GROUP BY report_date
+HAVING 
+       SUM(delta_confirmed) > 0 
+    OR SUM(delta_deaths) > 0 
+    OR SUM(delta_recovered) > 0
 ORDER BY report_date DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
@@ -84,6 +88,10 @@ SELECT
 FROM 
      cases_rnbo
 GROUP BY report_date, state_id
+HAVING 
+       SUM(delta_confirmed) > 0 
+    OR SUM(delta_deaths) > 0 
+    OR SUM(delta_recovered) > 0
 ORDER BY report_date DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
