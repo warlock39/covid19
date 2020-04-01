@@ -61,9 +61,9 @@ SQL;
         $query = <<<SQL
 SELECT
   report_date AS datetime,
-  SUM(confirmed) AS confirmed,
-  SUM(deaths) AS deaths,
-  SUM(recovered) AS recovered
+  SUM(delta_confirmed) AS confirmed,
+  SUM(delta_deaths) AS deaths,
+  SUM(delta_recovered) AS recovered
 FROM 
      cases_rnbo
 GROUP BY report_date
@@ -76,11 +76,11 @@ SQL;
     {
         $query = <<<SQL
 SELECT
-  report_date AS datetime,
+  report_date as datetime,
   state_id,
-  SUM(confirmed) AS confirmed,
-  SUM(deaths) AS deaths,
-  SUM(recovered) AS recovered
+  SUM(delta_confirmed) AS confirmed,
+  SUM(delta_deaths) AS deaths,
+  SUM(delta_recovered) AS recovered
 FROM 
      cases_rnbo
 GROUP BY report_date, state_id
