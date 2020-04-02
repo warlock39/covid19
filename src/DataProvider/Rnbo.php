@@ -27,10 +27,10 @@ FROM
      cases_rnbo
 WHERE report_date = NOW()::date
 GROUP BY state_id
-HAVING
-       SUM(delta_confirmed) > 0 
-    OR SUM(delta_deaths) > 0 
-    OR SUM(delta_recovered) > 0
+-- HAVING
+--        SUM(delta_confirmed) > 0 
+--     OR SUM(delta_deaths) > 0 
+--     OR SUM(delta_recovered) > 0
 ORDER BY confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
