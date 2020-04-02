@@ -20,6 +20,7 @@ RUN apt-get update \
         php7.4-xml \
         php7.4-apcu \
         php7.4-curl \
+        php7.4-zip \
         npm \
         git \
     && chown -R www-data:www-data /var/lib/nginx \

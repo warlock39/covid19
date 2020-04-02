@@ -8,6 +8,7 @@
         "ext-dom": "*",
         "ext-iconv": "*",
         "ext-json": "*",
+        "ext-zip": "*",
         "doctrine/annotations": "^1.8",
         "doctrine/dbal": "^2.9",
         "nelmio/cors-bundle": "^2.0",
