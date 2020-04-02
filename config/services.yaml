@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     actualizer.data-dir: "%kernel.project_dir%/var/data"
+    container.dumper.inline_factories: true
+    container.dumper.inline_class_loader: true
 
 services:
     # default configuration for services in *this* file
