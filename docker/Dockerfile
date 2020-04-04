@@ -74,5 +74,7 @@ RUN php bin/console cache:warmup
 
 COPY --from=ukraine-corona /usr/src/app/build /app/web
 
+RUN chown -R www-data:www-data /app/web
+
 
 CMD ["/sbin/my_init"]
