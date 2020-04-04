@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      args:
+        ENV: ${ENV-prod}
     restart: always
     ports:
       - 80:80
@@ -20,7 +22,7 @@ services:
       - pg_data:/var/lib/postgresql/data/pgdata
       - /tmp:/tmp
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - ${PG_HOST_PORT-5432}:5432

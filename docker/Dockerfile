@@ -16,6 +16,7 @@ RUN apt-get update \
         python-certbot-nginx \
         certbot \
         php-pgsql \
+        unzip \
         php7.4-fpm \
         php7.4-xml \
         php7.4-apcu \
@@ -43,7 +44,7 @@ RUN \
  sed -e 's/;realpath_cache_size = [0-9a-zA-Z]*/realpath_cache_size=4096K/' -i /etc/php/7.4/fpm/php.ini && \
  sed -e 's/;realpath_cache_ttl = [0-9]*/realpath_cache_ttl=600/' -i /etc/php/7.4/fpm/php.ini
 
-
+ARG ENV
 
 COPY docker/nginx /etc/nginx
 
@@ -59,13 +60,12 @@ COPY bin /app/bin/
 COPY config /app/config/
 COPY public /app/public/
 COPY src /app/src/
-COPY vendor /app/vendor/
 COPY composer.lock /app
 COPY composer.json /app
 RUN mkdir /app/var
 RUN chmod 777 /app/var
 COPY .env /app/.env
-COPY .env.local /app/.env.local
+COPY .env.${ENV}.local /app/.env.local
 
 RUN composer install --no-dev
 RUN composer dump-env prod
