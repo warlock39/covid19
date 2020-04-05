@@ -40,11 +40,13 @@ class IndexController extends AbstractController
                     'confirmed' => 0,
                     'deaths' => 0,
                     'recovered' => 0,
+                    'suspicion' => 0,
                 ];
             }
             $data[$row['datetime']]['confirmed'] += $row['confirmed'];
             $data[$row['datetime']]['deaths'] += $row['deaths'];
             $data[$row['datetime']]['recovered'] += $row['recovered'];
+            $data[$row['datetime']]['suspicion'] += $row['suspicion'];
         }
         return $this->json($data);
     }
@@ -69,6 +71,7 @@ class IndexController extends AbstractController
                 'confirmed' => $row['confirmed'],
                 'deaths' => $row['deaths'],
                 'recovered' => $row['recovered'],
+                'suspicion' => $row['suspicion'],
             ];
         }
         return $this->json($data);
@@ -121,7 +124,7 @@ class IndexController extends AbstractController
 
     private function serialize(array $data): JsonResponse
     {
-        $projection = $this->projection(['state_title', 'confirmed', 'deaths', 'recovered']);
+        $projection = $this->projection(['state_title', 'confirmed', 'deaths', 'recovered', 'suspicion']);
 
         return $this->json([
             'data' => array_map($projection, $data),

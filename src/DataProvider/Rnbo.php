@@ -22,15 +22,17 @@ SELECT
   state_id,
   SUM(delta_confirmed) AS confirmed,
   SUM(delta_deaths) AS deaths,
-  SUM(delta_recovered) AS recovered
+  SUM(delta_recovered) AS recovered,
+  SUM(delta_suspicion) AS suspicion
 FROM 
      cases_rnbo
 WHERE report_date = NOW()::date
 GROUP BY state_id
--- HAVING
---        SUM(delta_confirmed) > 0 
---     OR SUM(delta_deaths) > 0 
---     OR SUM(delta_recovered) > 0
+HAVING
+       SUM(delta_confirmed) > 0 
+    OR SUM(delta_deaths) > 0 
+    OR SUM(delta_recovered) > 0
+    OR SUM(delta_suspicion) > 0
 ORDER BY confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
@@ -42,7 +44,8 @@ SELECT
   state_id,
   SUM(confirmed) AS confirmed,
   SUM(deaths) AS deaths,
-  SUM(recovered) AS recovered
+  SUM(recovered) AS recovered,
+  SUM(suspicion) AS suspicion
 FROM 
      cases_rnbo
 WHERE 
@@ -67,7 +70,8 @@ SELECT
   report_date AS datetime,
   SUM(delta_confirmed) AS confirmed,
   SUM(delta_deaths) AS deaths,
-  SUM(delta_recovered) AS recovered
+  SUM(delta_recovered) AS recovered,
+  SUM(delta_suspicion) AS suspicion
 FROM 
      cases_rnbo
 GROUP BY report_date
@@ -75,6 +79,7 @@ HAVING
        SUM(delta_confirmed) > 0 
     OR SUM(delta_deaths) > 0 
     OR SUM(delta_recovered) > 0
+    OR SUM(delta_suspicion) > 0
 ORDER BY report_date DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
@@ -88,7 +93,8 @@ SELECT
   state_id,
   SUM(delta_confirmed) AS confirmed,
   SUM(delta_deaths) AS deaths,
-  SUM(delta_recovered) AS recovered
+  SUM(delta_recovered) AS recovered,
+  SUM(delta_suspicion) AS suspicion
 FROM 
      cases_rnbo
 GROUP BY report_date, state_id
@@ -96,6 +102,7 @@ HAVING
        SUM(delta_confirmed) > 0 
     OR SUM(delta_deaths) > 0 
     OR SUM(delta_recovered) > 0
+    OR SUM(delta_suspicion) > 0
 ORDER BY report_date DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
