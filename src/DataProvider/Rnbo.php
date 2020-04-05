@@ -120,6 +120,23 @@ SELECT
   SUM(delta_suspicion) AS suspicion
 FROM 
      cases_rnbo_world
+WHERE country IN(
+    'us',
+    'spain',
+    'italy',
+    'germany',
+    'france',
+    'china',
+    'iran',
+    'united_kingdom',
+    'russia',
+    'belarus',
+    'poland',
+    'slovakia',
+    'hungary',
+    'romania',
+    'moldova'
+)
 GROUP BY report_date, country
 HAVING 
        SUM(delta_confirmed) > 0 

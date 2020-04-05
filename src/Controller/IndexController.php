@@ -133,9 +133,9 @@ class IndexController extends AbstractController
         $data = [];
         foreach($this->stat->casesWorld() as $row) {
             $data[$row['datetime']][$row['country']] = [
-                'confirmed' => $row['confirmed'],
-                'deaths' => $row['deaths'],
-                'recovered' => $row['recovered'],
+                $row['confirmed'],
+                $row['deaths'],
+                $row['recovered'],
             ];
         }
         return $this->json($data);
