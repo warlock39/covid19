@@ -107,4 +107,27 @@ ORDER BY report_date DESC, confirmed DESC
 SQL;
         return $this->conn->fetchAll($query);
     }
+
+    public function casesWorld(): array
+    {
+        $query = <<<SQL
+SELECT
+  report_date as datetime,
+  country,
+  SUM(delta_confirmed) AS confirmed,
+  SUM(delta_deaths) AS deaths,
+  SUM(delta_recovered) AS recovered,
+  SUM(delta_suspicion) AS suspicion
+FROM 
+     cases_rnbo_world
+GROUP BY report_date, country
+HAVING 
+       SUM(delta_confirmed) > 0 
+    OR SUM(delta_deaths) > 0 
+    OR SUM(delta_recovered) > 0
+    OR SUM(delta_suspicion) > 0
+ORDER BY report_date DESC, confirmed DESC 
+SQL;
+        return $this->conn->fetchAll($query);
+    }
 }

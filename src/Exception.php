@@ -36,10 +36,6 @@ class Exception extends \Exception
     {
         return $this->errorCode;
     }
-    public static function noStateId(): Exception
-    {
-        return new self(__FUNCTION__, 'State ID is required field');
-    }
 
     public static function invalidDate(string $msg): Exception
     {

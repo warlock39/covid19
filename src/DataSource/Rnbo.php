@@ -42,50 +42,68 @@ class Rnbo implements DataSource
             return;
         }
 
-        $this->connection->beginTransaction();
-        $this->connection->delete('cases_rnbo', ['report_date' => $dateStr = $date->format('Y-m-d')]);
+        $this->actualizeSource($json['ukraine'], 'cases_rnbo', $date, static function (array $row) {
 
-        foreach ($json as $row) {
+            Assert::keyExists($row, 'label');
+            Assert::keyExists($row['label'], 'uk');
+            Assert::keyExists(self::STATES_MAP, $row['label']['uk'], "Couldn't not find 'state_id' for {$row['label']['uk']}");
+
+            return [
+                'state_id' => self::STATES_MAP[$row['label']['uk']],
+            ];
+        });
+
+        $this->actualizeSource($json['world'], 'cases_rnbo_world', $date, static function (array $row) {
+            Assert::keyExists($row, 'country');
+            return [
+                'country' => str_replace(' ', '_', strtolower($row['country'])),
+            ];
+        });
+
+        $this->logger->info('End of actualization of RNBO datasource');
+    }
+
+    private function actualizeSource(array $data, string $table, DateTimeImmutable $date, callable $mapFunc): void
+    {
+        $this->connection->beginTransaction();
+        $this->connection->delete($table, ['report_date' => $date->format('Y-m-d')]);
+        foreach ($data as $row) {
 
             try {
-                Assert::keyExists($row, 'label');
-                Assert::keyExists($row['label'], 'uk');
-                Assert::keyExists(self::STATES_MAP, $row['label']['uk'], "Couldn't not find 'state_id' for {$row['label']['uk']}");
-
-                [
-                    'confirmed' => $confirmed,
-                    'deaths' => $deaths,
-                    'recovered' => $recovered,
-                ] = $row;
-
-                if ($confirmed === $deaths && $deaths === $recovered && $recovered === 0) {
+                if ($row['confirmed'] === 0 && $row['deaths'] === 0 && $row['recovered'] === 0 && $row['suspicion'] === 0) {
                     continue;
                 }
+                $common = $this->prepare($row, $date);
+                $custom = $mapFunc($row);
 
-                $this->connection->insert('cases_rnbo', [
-                    'actualized_at' => (new DateTimeImmutable())->format(DATE_RFC3339_EXTENDED),
-                    'report_date' => $date->format('Y-m-d'),
-                    'state_id' => self::STATES_MAP[$row['label']['uk']],
-                    'confirmed' => $confirmed,
-                    'recovered' => $recovered,
-                    'deaths' => $deaths,
-                    'existing' =>  (int) $row['existing'],
-                    'suspicion' => (int) $row['suspicion'],
-                    'lat' => (float) $row['lat'],
-                    'lng' =>  (float) $row['lng'],
-                    'delta_confirmed' => (int) $row['delta_confirmed'],
-                    'delta_deaths' => (int) $row['delta_deaths'],
-                    'delta_recovered' => (int) $row['delta_recovered'],
-                    'delta_existing' => (int) $row['delta_existing'],
-                    'delta_suspicion' => (int) $row['delta_suspicion']
-                ]);
+                $this->connection->insert($table, $common + $custom);
+
             } catch (Exception | InvalidArgumentException $e) {
                 $this->logger->warning($e->getMessage());
                 continue;
             }
         }
         $this->connection->commit();
-        $this->logger->info('End of actualization of RNBO datasource');
+    }
+
+    private function prepare(array $row, DateTimeImmutable $date): array
+    {
+        return [
+            'actualized_at' => (new DateTimeImmutable())->format(DATE_RFC3339_EXTENDED),
+            'report_date' => $date->format('Y-m-d'),
+            'confirmed' => (int) $row['confirmed'],
+            'recovered' => (int) $row['recovered'],
+            'deaths' => (int) $row['deaths'],
+            'existing' =>  (int) $row['existing'],
+            'suspicion' => (int) $row['suspicion'],
+            'lat' => (float) $row['lat'],
+            'lng' =>  (float) $row['lng'],
+            'delta_confirmed' => (int) $row['delta_confirmed'],
+            'delta_deaths' => (int) $row['delta_deaths'],
+            'delta_recovered' => (int) $row['delta_recovered'],
+            'delta_existing' => (int) $row['delta_existing'],
+            'delta_suspicion' => (int) $row['delta_suspicion']
+        ];
     }
 
     private function download(DateTimeImmutable $date): array
@@ -108,6 +126,7 @@ class Rnbo implements DataSource
 
         $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         Assert::keyExists($data, 'ukraine');
+        Assert::keyExists($data, 'world');
 
         $dir = $this->downloadDir.'/rnbo/';
         if (!file_exists($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
@@ -116,6 +135,6 @@ class Rnbo implements DataSource
         $filename = $dir.date('Y_m_d_H_i').'.json';
         file_put_contents($filename, $content);
 
-        return $data['ukraine'];
+        return $data;
     }
 }

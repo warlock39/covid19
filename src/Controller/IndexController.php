@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\DataProvider\DataProvider;
-use App\Exception;
 use App\When;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +24,10 @@ class IndexController extends AbstractController
     {
         $data = $this->stat->newCases();
 
-        return $this->serialize($data);
+
+        return $this->json([
+            'data' => $data,
+        ]);
     }
 
     /**
@@ -58,7 +60,9 @@ class IndexController extends AbstractController
     {
         $data = $this->stat->casesBy(When::today());
 
-        return $this->serialize($data);
+        return $this->json([
+            'data' => $data,
+        ]);
     }
     /**
      * @Route("/api/detailed", name="detailed")
@@ -121,24 +125,19 @@ class IndexController extends AbstractController
         ];
         return $this->json($data);
     }
-
-    private function serialize(array $data): JsonResponse
+    /**
+     * @Route("/api/world", name="world")
+     */
+    public function world(): JsonResponse
     {
-        $projection = $this->projection(['state_title', 'confirmed', 'deaths', 'recovered', 'suspicion']);
-
-        return $this->json([
-            'data' => array_map($projection, $data),
-        ]);
-    }
-
-    private function projection(array $fields): callable
-    {
-        return static function ($item) use ($fields) {
-            if (empty($item['state_id'])) {
-                throw Exception::noStateId();
-            }
-            $fields[] = 'state_id';
-            return array_intersect_key($item, array_flip($fields));
-        };
+        $data = [];
+        foreach($this->stat->casesWorld() as $row) {
+            $data[$row['datetime']][$row['country']] = [
+                'confirmed' => $row['confirmed'],
+                'deaths' => $row['deaths'],
+                'recovered' => $row['recovered'],
+            ];
+        }
+        return $this->json($data);
     }
 }

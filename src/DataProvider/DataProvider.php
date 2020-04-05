@@ -16,4 +16,6 @@ interface DataProvider
 
     public function casesDailyDetailed(): array;
 
+    public function casesWorld(): array;
+
 }
