@@ -4,14 +4,13 @@ namespace App\DataSource;
 
 use App\DataProvider\Tkmedia AS TkmediaDataProvider;
 use App\Exception;
+use App\States;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use ErrorException;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
-use Webmozart\Assert\Assert;
 
 class Tkmedia implements DataSource
 {
@@ -45,17 +44,18 @@ class Tkmedia implements DataSource
         $this->connection->beginTransaction();
         $this->connection->delete('cases_aggregated_tkmedia', ['date' => $dateStr]);
 
+        $states = States::default();
+
         foreach ($byStates as [$state, $confirmed, $recovered, $deaths]) {
             try {
-                Assert::keyExists(self::STATES_MAP, $state);
                 $this->connection->insert('cases_aggregated_tkmedia', [
                     'date' => $dateStr,
-                    'state_id' => self::STATES_MAP[$state],
+                    'state_id' => $states->keyOf($state),
                     'confirmed' => $confirmed,
                     'recovered' => $recovered,
                     'deaths' => $deaths,
                 ]);
-            } catch (InvalidArgumentException $e) {
+            } catch (Exception $e) {
                 $this->logger->warning($e->getMessage());
                 continue;
             }

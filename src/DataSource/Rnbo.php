@@ -4,6 +4,7 @@
 namespace App\DataSource;
 
 
+use App\States;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use InvalidArgumentException;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpClient\Exception\ServerException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Webmozart\Assert\Assert;
+use App\Exception as CommonException;
 
 class Rnbo implements DataSource
 {
@@ -41,15 +43,15 @@ class Rnbo implements DataSource
             $this->logger->critical('JSON '.$e->getMessage());
             return;
         }
+        $states = States::default();
 
-        $this->actualizeSource($json['ukraine'], 'cases_rnbo', $date, static function (array $row) {
+        $this->actualizeSource($json['ukraine'], 'cases_rnbo', $date, static function (array $row) use ($states) {
 
             Assert::keyExists($row, 'label');
             Assert::keyExists($row['label'], 'uk');
-            Assert::keyExists(self::STATES_MAP, $row['label']['uk'], "Couldn't not find 'state_id' for {$row['label']['uk']}");
 
             return [
-                'state_id' => self::STATES_MAP[$row['label']['uk']],
+                'state_id' => $states->keyOf($row['label']['uk'])
             ];
         });
 
@@ -78,7 +80,7 @@ class Rnbo implements DataSource
 
                 $this->connection->insert($table, $common + $custom);
 
-            } catch (Exception | InvalidArgumentException $e) {
+            } catch (Exception | CommonException $e) {
                 $this->logger->warning($e->getMessage());
                 continue;
             }

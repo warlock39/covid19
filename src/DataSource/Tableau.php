@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DataSource;
 
 
+use App\States;
 use App\When;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
@@ -17,6 +18,7 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Webmozart\Assert\Assert;
+use App\Exception as CommonException;
 
 use function count;
 use function json_decode;
@@ -54,16 +56,16 @@ class Tableau implements DataSource
         $this->connection->delete('cases_tableau_raw', ['actualized_at::date' => $dateStr = $date->format('Y-m-d')]);
 
         $this->logger->info('Start reading of CSV file...');
+        $states = States::default();
         $i = $j = 0;
         foreach ($this->readCsv($csv) as $row) {
 
             try {
-                Assert::keyExists(self::STATES_MAP, $row['state'], "Couldn't not find 'state_id' for {$row['state']}");
 
                 $this->connection->insert('cases_tableau_raw', [
                     'actualized_at' => $date->format(DATE_RFC3339_EXTENDED),
                     'report_date' => When::fromString($row['report_date'], 'n/d/Y')->format('Y-m-d'),
-                    'state_id' => self::STATES_MAP[$row['state']],
+                    'state_id' => $states->keyOf($row['state']),
                     'confirmed' => (int) $row['confirmed'],
                     'recovered' => (int) $row['recovered'],
                     'deaths' => (int) $row['deaths'],
@@ -80,7 +82,7 @@ class Tableau implements DataSource
                     'patient_status' => $row['patient_status'],
                 ]);
                 $i++;
-            } catch (Exception | InvalidArgumentException $e) {
+            } catch (Exception | CommonException $e) {
                 $this->logger->warning($e->getMessage(), [
                     'filename' => $csv->getFilename(),
                 ]);
@@ -302,7 +304,7 @@ SQL);
             'addrlocat' => null,
             'addrtype' => null,
             'Адреса' => 'address',
-            'Госпіталізація' => null,
+            'Госпіталізація' => 'hospitalization',
             'Звітна дата' => 'report_date',
             'Код ЄДРПОУ закладу охорони здоров\'я' => 'edrpo',
             'Кількість апаратів штучної вентиляції легень у закладі охорони здоров\'я' => 'ventilators',

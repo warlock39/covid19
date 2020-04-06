@@ -23,7 +23,16 @@ class Exception extends \Exception
     {
         return new self(__FUNCTION__, $msg);
     }
-
+    public static function invalidStateKey(string $key, array $available): self
+    {
+        $msg = "State key \"$key\" is not supported. Next ones available: ".implode(', ', $available);
+        return new self(__FUNCTION__, $msg);
+    }
+    public static function stateKeyNotRecognized(string $name): self
+    {
+        $msg = "State key is not recognized by name \"$name\". Consider adding alias";
+        return new self(__FUNCTION__, $msg);
+    }
     public function getContext(): array
     {
         return [
