@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\DataProvider\DataProvider;
 use App\When;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -79,6 +80,14 @@ class IndexController extends AbstractController
             ];
         }
         return $this->json($data);
+    }
+    /**
+     * @Route("/api/gender-age", name="genderAge")
+     */
+    public function genderAge(Connection $conn): JsonResponse
+    {
+        $data = $conn->fetchColumn('SELECT data FROM gender_age ORDER BY date DESC LIMIT 1');
+        return new JsonResponse($data, 200, [], true);
     }
     /**
      * @Route("/api/deaths-gender-age", name="deathsGenderAge")
