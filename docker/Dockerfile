@@ -3,8 +3,6 @@ FROM phusion/baseimage:0.11
 EXPOSE 80
 EXPOSE 8080
 
-WORKDIR /app
-
 RUN add-apt-repository -y ppa:nginx/stable
 RUN add-apt-repository -y ppa:ondrej/php
 RUN add-apt-repository -y ppa:certbot/certbot
@@ -56,16 +54,17 @@ ADD docker/runit/nginx.sh /etc/service/nginx/run
 RUN chmod ugo+x /etc/service/php-fpm/run
 RUN chmod ugo+x /etc/service/nginx/run
 
-COPY bin /app/bin/
-COPY config /app/config/
-COPY public /app/public/
-COPY src /app/src/
-COPY composer.lock /app
-COPY composer.json /app
-RUN mkdir /app/var
-RUN chmod 777 /app/var
-COPY .env /app/.env
-COPY .env.${ENV}.local /app/.env.local
+WORKDIR /app
+
+COPY bin ./bin
+COPY config ./config
+COPY public ./public
+COPY src ./src
+COPY composer.lock ./
+COPY composer.json ./
+COPY .env ./
+COPY .env.${ENV}.local ./.env.local
+RUN mkdir var
 
 RUN composer install --no-dev
 RUN composer dump-env prod
@@ -74,7 +73,7 @@ RUN php bin/console cache:warmup
 
 COPY --from=ukraine-corona /usr/src/app/build /app/web
 
-RUN chown -R www-data:www-data /app/web
+RUN chown -R www-data:www-data /app
 
 
 CMD ["/sbin/my_init"]
