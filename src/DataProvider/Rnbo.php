@@ -4,8 +4,8 @@ namespace App\DataProvider;
 
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
-use RuntimeException;
 
 class Rnbo implements DataProvider
 {
@@ -17,25 +17,7 @@ class Rnbo implements DataProvider
     }
     public function newCases(): array
     {
-        $query = <<<SQL
-SELECT
-  state_id,
-  SUM(delta_confirmed) AS confirmed,
-  SUM(delta_deaths) AS deaths,
-  SUM(delta_recovered) AS recovered,
-  SUM(delta_suspicion) AS suspicion
-FROM 
-     cases_rnbo
-WHERE report_date = NOW()::date
-GROUP BY state_id
-HAVING
-       SUM(delta_confirmed) > 0 
-    OR SUM(delta_deaths) > 0 
-    OR SUM(delta_recovered) > 0
-    OR SUM(delta_suspicion) > 0
-ORDER BY confirmed DESC 
-SQL;
-        return $this->conn->fetchAll($query);
+        return $this->casesAt(new DateTimeImmutable('now', new DateTimeZone('UTC')));
     }
     public function casesBy(DateTimeImmutable $date): array
     {
@@ -60,7 +42,27 @@ SQL;
 
     public function casesAt(DateTimeImmutable $date): array
     {
-        throw new RuntimeException('Not implemented');
+        $query = <<<SQL
+SELECT
+  state_id,
+  SUM(delta_confirmed) AS confirmed,
+  SUM(delta_deaths) AS deaths,
+  SUM(delta_recovered) AS recovered,
+  SUM(delta_suspicion) AS suspicion
+FROM 
+     cases_rnbo
+WHERE report_date = :date
+GROUP BY state_id
+HAVING
+       SUM(delta_confirmed) > 0 
+    OR SUM(delta_deaths) > 0 
+    OR SUM(delta_recovered) > 0
+    OR SUM(delta_suspicion) > 0
+ORDER BY confirmed DESC 
+SQL;
+        return $this->conn->fetchAll($query, [
+            'date' => $date->format('Y-m-d'),
+        ]);
     }
 
     public function casesDaily(): array

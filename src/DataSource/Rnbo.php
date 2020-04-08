@@ -6,6 +6,7 @@ namespace App\DataSource;
 
 use App\States;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use InvalidArgumentException;
 use JsonException;
@@ -91,7 +92,7 @@ class Rnbo implements DataSource
     private function prepare(array $row, DateTimeImmutable $date): array
     {
         return [
-            'actualized_at' => (new DateTimeImmutable())->format(DATE_RFC3339_EXTENDED),
+            'actualized_at' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_RFC3339_EXTENDED),
             'report_date' => $date->format('Y-m-d'),
             'confirmed' => (int) $row['confirmed'],
             'recovered' => (int) $row['recovered'],
