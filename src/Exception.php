@@ -4,13 +4,10 @@ namespace App;
 class Exception extends \Exception
 {
     private string $errorCode;
-    /** @var string */
-    private string $errorMsg;
 
     public function __construct(string $errorCode, string $errorMsg)
     {
         $this->errorCode = $errorCode;
-        $this->errorMsg = $errorMsg;
         parent::__construct($errorMsg);
     }
 
@@ -32,13 +29,6 @@ class Exception extends \Exception
     {
         $msg = "State key is not recognized by name \"$name\". Consider adding alias";
         return new self(__FUNCTION__, $msg);
-    }
-    public function getContext(): array
-    {
-        return [
-            'error_code' => $this->errorCode,
-            'error_msg' => $this->errorMsg,
-        ];
     }
 
     public function errorCode(): string

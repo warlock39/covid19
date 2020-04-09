@@ -22,4 +22,11 @@ class Exception extends App\Exception
             'CSV file not downloaded',
             'Content-Type is not text/csv. Probably download link is changed'));
     }
+
+    public static function coordsNotFound(App\DataSource\Tableau\Hospital $hospital): Exception
+    {
+        return new self(__FUNCTION__, self::msg(
+            'Coordinates could not be resolved',
+            "Hospital name: {$hospital->name()} (edrpo: {$hospital->edrpo()})"));
+    }
 }

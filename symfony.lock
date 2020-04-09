@@ -26,6 +26,12 @@
     "doctrine/lexer": {
         "version": "1.2.0"
     },
+    "geocoder-php/arcgis-online-provider": {
+        "version": "4.0.0"
+    },
+    "geocoder-php/common-http": {
+        "version": "4.2.0"
+    },
     "monolog/monolog": {
         "version": "2.0.2"
     },
@@ -44,8 +50,32 @@
     "nikic/php-parser": {
         "version": "v4.3.0"
     },
+    "nyholm/psr7": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "7c0a9352a57376f04f5444e74565102c3a23d0c7"
+        },
+        "files": [
+            "config/packages/nyholm_psr7.yaml"
+        ]
+    },
     "php": {
         "version": "7.4"
+    },
+    "php-http/discovery": {
+        "version": "1.7.4"
+    },
+    "php-http/httplug": {
+        "version": "2.1.0"
+    },
+    "php-http/message-factory": {
+        "version": "v1.0.2"
+    },
+    "php-http/promise": {
+        "version": "v1.0.0"
     },
     "psr/cache": {
         "version": "1.0.1"
@@ -55,6 +85,15 @@
     },
     "psr/event-dispatcher": {
         "version": "1.0.0"
+    },
+    "psr/http-client": {
+        "version": "1.0.0"
+    },
+    "psr/http-factory": {
+        "version": "1.0.1"
+    },
+    "psr/http-message": {
+        "version": "1.0.1"
     },
     "psr/log": {
         "version": "1.1.2"
@@ -221,5 +260,8 @@
     },
     "webmozart/assert": {
         "version": "1.7.0"
+    },
+    "willdurand/geocoder": {
+        "version": "4.2.2"
     }
 }
