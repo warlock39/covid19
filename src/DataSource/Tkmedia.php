@@ -44,13 +44,11 @@ class Tkmedia implements DataSource
         $this->connection->beginTransaction();
         $this->connection->delete('cases_aggregated_tkmedia', ['date' => $dateStr]);
 
-        $states = States::default();
-
         foreach ($byStates as [$state, $confirmed, $recovered, $deaths]) {
             try {
                 $this->connection->insert('cases_aggregated_tkmedia', [
                     'date' => $dateStr,
-                    'state_id' => $states->keyOf($state),
+                    'state_id' => States::default()->keyOf($state),
                     'confirmed' => $confirmed,
                     'recovered' => $recovered,
                     'deaths' => $deaths,

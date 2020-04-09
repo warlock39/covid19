@@ -10,11 +10,14 @@ class When
     {
         return new DateTimeImmutable('now', new DateTimeZone('UTC'));
     }
+    public static function todayRfc3339(): string
+    {
+        return self::today()->format(DATE_RFC3339_EXTENDED);
+    }
     public static function yesterday(): DateTimeImmutable
     {
         return new DateTimeImmutable('yesterday', new DateTimeZone('UTC'));
     }
-
     public static function fromString(string $date, string $format = 'Y-m-d'): DateTimeImmutable
     {
         $when = DateTimeImmutable::createFromFormat($format, $date);

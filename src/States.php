@@ -92,9 +92,11 @@ class States
         'Vinnytsya' => 'ua-vi',
     ];
 
+    protected static States $defaultStates;
+
     public static function default(): self
     {
-        return new self();
+        return static::$defaultStates ??= new self();
     }
 
     public function nameBy(string $key)

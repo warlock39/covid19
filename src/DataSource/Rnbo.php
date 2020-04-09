@@ -5,8 +5,8 @@ namespace App\DataSource;
 
 
 use App\States;
+use App\When;
 use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use InvalidArgumentException;
 use JsonException;
@@ -44,15 +44,14 @@ class Rnbo implements DataSource
             $this->logger->critical('JSON '.$e->getMessage());
             return;
         }
-        $states = States::default();
 
-        $this->actualizeSource($json['ukraine'], 'cases_rnbo', $date, static function (array $row) use ($states) {
+        $this->actualizeSource($json['ukraine'], 'cases_rnbo', $date, static function (array $row) {
 
             Assert::keyExists($row, 'label');
             Assert::keyExists($row['label'], 'uk');
 
             return [
-                'state_id' => $states->keyOf($row['label']['uk'])
+                'state_id' => States::default()->keyOf($row['label']['uk'])
             ];
         });
 
@@ -92,7 +91,7 @@ class Rnbo implements DataSource
     private function prepare(array $row, DateTimeImmutable $date): array
     {
         return [
-            'actualized_at' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_RFC3339_EXTENDED),
+            'actualized_at' => When::todayRfc3339(),
             'report_date' => $date->format('Y-m-d'),
             'confirmed' => (int) $row['confirmed'],
             'recovered' => (int) $row['recovered'],
