@@ -47,7 +47,8 @@ SELECT
     tk.state_id,
     GREATEST(0, tk.confirmed - c.confirmed) AS confirmed,
     GREATEST(0, tk.deaths - c.deaths) AS deaths,
-    GREATEST(0, tk.recovered - c.recovered) AS recovered
+    GREATEST(0, tk.recovered - c.recovered) AS recovered,
+    0 AS suspicion
 FROM
     cases_aggregated_tkmedia tk LEFT JOIN
     last_corona c ON c.state_id = tk.state_id
@@ -79,7 +80,8 @@ SELECT
   state_id,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
-  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered,
+  0 AS suspicion
 FROM 
      cases 
 GROUP BY datetime::date, state_id

@@ -20,7 +20,8 @@ SELECT
   state_id,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
-  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered,
+  0 AS suspicion
 FROM 
      cases 
 WHERE 
@@ -40,7 +41,8 @@ SELECT
   state_id,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
-  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered,
+  0 AS suspicion
 FROM 
      cases 
 WHERE 
@@ -60,7 +62,8 @@ SELECT
   datetime::date,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
-  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered,
+  0 AS suspicion
 FROM 
      cases 
 GROUP BY datetime::date
@@ -77,7 +80,8 @@ SELECT
   state_id,
   SUM(CASE WHEN event = 'confirmed' THEN count ELSE 0 END) AS confirmed,
   SUM(CASE WHEN event = 'death' THEN count ELSE 0 END) AS deaths,
-  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered
+  SUM(CASE WHEN event = 'recovered' THEN count ELSE 0 END) AS recovered,
+  0 AS suspicion
 FROM 
      cases 
 GROUP BY datetime::date, state_id
