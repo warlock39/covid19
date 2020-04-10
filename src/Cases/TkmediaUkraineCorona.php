@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\DataProvider;
+namespace App\Cases;
 
 
 use DateTimeImmutable;

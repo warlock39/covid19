@@ -1,12 +1,12 @@
 <?php
 
-namespace App\DataProvider;
+namespace App\Cases;
 
 
 use App\DataSource\Exception;
 use Doctrine\DBAL\Connection;
 
-class Factory
+class DataProviderFactory
 {
     public const TKMEDIA_UKRAINE_CORONA = 'tkmedia.ukraine-corona';
     public const UKRAINE_CORONA = 'ukraine-corona';

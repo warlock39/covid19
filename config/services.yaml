@@ -37,5 +37,5 @@ services:
             $params:
                 url: '%env(DATABASE_URL)%'
 
-    App\DataProvider\DataProvider:
-        factory: '@App\DataProvider\Factory'
+    App\Cases\DataProvider:
+        factory: '@App\Cases\DataProviderFactory'

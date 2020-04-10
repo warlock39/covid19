@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\DataSource;
 
-use App\DataProvider\Tkmedia AS TkmediaDataProvider;
+use App\Cases\Tkmedia as TkmediaDataProvider;
 use App\Exception;
 use App\States;
 use DateTimeImmutable;

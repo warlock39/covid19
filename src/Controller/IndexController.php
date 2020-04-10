@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\DataProvider\DataProvider;
+use App\Cases\DataProvider;
 use App\When;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

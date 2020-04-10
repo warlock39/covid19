@@ -1,10 +1,10 @@
 <?php
 
-namespace App\DataProvider;
+namespace App\Cases;
 
 
+use App\When;
 use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 
 class Rnbo implements DataProvider
@@ -17,7 +17,7 @@ class Rnbo implements DataProvider
     }
     public function newCases(): array
     {
-        return $this->casesAt(new DateTimeImmutable('now', new DateTimeZone('UTC')));
+        return $this->casesAt(When::today());
     }
     public function casesBy(DateTimeImmutable $date): array
     {
