@@ -4,6 +4,7 @@
 namespace App\Cases;
 
 
+use App\When;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 
@@ -65,6 +66,9 @@ SQL;
 
     public function casesAt(DateTimeImmutable $date): array
     {
+        if (When::isToday($date)) {
+            return $this->newCases();
+        }
         return $this->corona->casesAt($date);
     }
     public function casesDailyDetailed(): array

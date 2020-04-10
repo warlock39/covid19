@@ -3,7 +3,6 @@
 namespace App\Cases;
 
 
-use App\When;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 
@@ -14,10 +13,6 @@ class Rnbo implements DataProvider, World
     public function __construct(Connection $conn)
     {
         $this->conn = $conn;
-    }
-    public function newCases(): array
-    {
-        return $this->casesAt(When::today());
     }
     public function casesBy(DateTimeImmutable $date): array
     {

@@ -5,7 +5,6 @@ namespace App\Cases;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use RuntimeException;
 
 class Tkmedia implements DataProvider
 {
@@ -88,9 +87,5 @@ GROUP BY datetime, state_id
 ORDER BY datetime DESC, confirmed DESC
 SQL;
         return $this->conn->fetchAll($query);
-    }
-    public function newCases(): array
-    {
-        throw new RuntimeException('Not implemented');
     }
 }

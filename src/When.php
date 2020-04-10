@@ -29,4 +29,8 @@ class When
         }
         return $when;
     }
+    public static function isToday(DateTimeImmutable $date): bool
+    {
+        return self::today()->diff($date)->days === 0;
+    }
 }

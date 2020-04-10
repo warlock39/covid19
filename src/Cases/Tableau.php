@@ -6,7 +6,6 @@ namespace App\Cases;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use RuntimeException;
 
 class Tableau implements DataProvider
 {
@@ -87,10 +86,5 @@ GROUP BY report_date::date, state_id
 ORDER BY report_date::date DESC, confirmed DESC;
 SQL;
         return $this->conn->fetchAll($query);
-    }
-
-    public function newCases(): array
-    {
-        throw new RuntimeException('Not implemented');
     }
 }

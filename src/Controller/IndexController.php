@@ -24,7 +24,7 @@ class IndexController extends AbstractController
      */
     public function new(): JsonResponse
     {
-        $data = $this->stat->newCases();
+        $data = $this->stat->casesAt(When::today());
         if (empty($data)) {
             $data = $this->stat->casesAt(When::yesterday());
         }
