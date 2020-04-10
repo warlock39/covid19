@@ -15,6 +15,10 @@ class Exception extends \Exception
     {
         return new self(__FUNCTION__, 'Data source not supported');
     }
+    public static function dataSourceNoWorldStat(): self
+    {
+        return new self(__FUNCTION__, 'Data source doesn\'t support World stat');
+    }
 
     public static function actualizationFailed(string $msg): self
     {

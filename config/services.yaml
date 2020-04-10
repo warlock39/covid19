@@ -39,3 +39,6 @@ services:
 
     App\Cases\DataProvider:
         factory: '@App\Cases\DataProviderFactory'
+
+    App\Cases\World:
+        factory: ['@App\Cases\DataProviderFactory', 'worldStat']

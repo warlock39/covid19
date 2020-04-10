@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Cases\DataProvider;
+use App\Cases\World;
 use App\When;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -93,10 +94,10 @@ class IndexController extends AbstractController
     /**
      * @Route("/api/world", name="world")
      */
-    public function world(): JsonResponse
+    public function world(World $worldStat): JsonResponse
     {
         $data = [];
-        foreach($this->stat->casesWorld() as $row) {
+        foreach($worldStat->byCountries() as $row) {
             $data[$row['datetime']][$row['country']] = [
                 $row['confirmed'],
                 $row['deaths'],

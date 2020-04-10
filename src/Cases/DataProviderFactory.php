@@ -23,10 +23,14 @@ class DataProviderFactory
 
     public function __invoke()
     {
-        $col = $this->connection->fetchColumn("SELECT value FROM settings WHERE key = 'data-source'");
-        $name = $col ?: 'ukraine-corona';
-
+        $name = $this->fromSettings();
         return $this->byName($name);
+    }
+
+    private function fromSettings(): string
+    {
+        $col = $this->connection->fetchColumn("SELECT value FROM settings WHERE key = 'data-source'");
+        return $col ?: 'ukraine-corona';
     }
 
     public function byName(string $name)
@@ -54,5 +58,19 @@ class DataProviderFactory
                 }
                 throw Exception::dataSourceNotSupported();
         }
+    }
+
+    public function worldStat(): World
+    {
+        $name = $this->fromSettings();
+
+        $rnbo = new Rnbo($this->connection);
+        if ($name === self::RNBO) {
+            return $rnbo;
+        }
+        if (empty($name)) {
+            return $rnbo;
+        }
+        throw Exception::dataSourceNoWorldStat();
     }
 }

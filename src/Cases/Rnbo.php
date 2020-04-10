@@ -7,7 +7,7 @@ use App\When;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 
-class Rnbo implements DataProvider
+class Rnbo implements DataProvider, World
 {
     private Connection $conn;
 
@@ -110,7 +110,7 @@ SQL;
         return $this->conn->fetchAll($query);
     }
 
-    public function casesWorld(): array
+    public function byCountries(): array
     {
         $query = <<<SQL
 SELECT

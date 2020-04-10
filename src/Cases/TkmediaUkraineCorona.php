@@ -6,7 +6,6 @@ namespace App\Cases;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use RuntimeException;
 
 class TkmediaUkraineCorona implements DataProvider
 {
@@ -83,9 +82,5 @@ GROUP BY datetime::date, state_id
 ORDER BY datetime DESC, confirmed DESC 
 SQL;
         return $this->conn->fetchAll($query);
-    }
-    public function casesWorld(): array
-    {
-        throw new RuntimeException('Not supported');
     }
 }

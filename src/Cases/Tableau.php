@@ -93,9 +93,4 @@ SQL;
     {
         throw new RuntimeException('Not implemented');
     }
-
-    public function casesWorld(): array
-    {
-        throw new RuntimeException('Not supported');
-    }
 }
