@@ -135,7 +135,7 @@ WITH stat AS (
     WHERE
           actualized_at = (SELECT MAX(actualized_at) FROM cases_tableau_raw)
       AND report_date::date = :date
-      AND edrpo != 'самоізоляція'
+      AND LOWER(edrpo) != 'самоізоляція'
     GROUP BY report_date, state_id, hospital, edrpo
     ORDER BY report_date DESC, confirmed DESC
 )
@@ -174,7 +174,7 @@ FROM
          LEFT JOIN hospital exst ON new.edrpo = exst.edrpo
 WHERE 
       new.actualized_at = (SELECT MAX(actualized_at) FROM cases_tableau_raw)
-  AND new.edrpo != 'самоізоляція'
+  AND LOWER(new.edrpo) != 'самоізоляція'
   AND new.address IS NOT NULL
   AND exst.edrpo IS NULL;
 SQL);
