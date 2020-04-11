@@ -60,7 +60,7 @@ class Downloader
 
             if ($this->format === self::CSV) {
                 $contentType = $response->getHeaders()['content-type'][0] ?? '';
-                if ($contentType !== 'text/csv;charset=utf-8') {
+                if (stripos('text/csv', $contentType) === false) {
                     throw Exception::notCsv();
                 }
             }
