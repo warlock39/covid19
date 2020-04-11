@@ -4,6 +4,9 @@
 namespace App\DataSource;
 
 
+use App\DataSource\Downloader\Downloader;
+use App\DataSource\Downloader\Exception as DownloaderException;
+use App\Exception as CommonException;
 use App\States;
 use App\When;
 use DateTimeImmutable;
@@ -11,33 +14,26 @@ use Doctrine\DBAL\Connection;
 use InvalidArgumentException;
 use JsonException;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use Symfony\Component\HttpClient\Exception\ClientException;
-use Symfony\Component\HttpClient\Exception\ServerException;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Webmozart\Assert\Assert;
-use App\Exception as CommonException;
 
 class Rnbo implements DataSource
 {
-    private HttpClientInterface $http;
     private LoggerInterface $logger;
-    private string $downloadDir;
     private Connection $connection;
+    private Downloader $downloader;
 
-    public function __construct(Connection $connection, string $actualizerDir, HttpClientInterface $http, LoggerInterface $logger)
+    public function __construct(Connection $connection, Downloader $downloader, LoggerInterface $logger)
     {
-        $this->http = $http;
         $this->logger = $logger;
-        $this->downloadDir = $actualizerDir;
         $this->connection = $connection;
+        $this->downloader = $downloader;
     }
     public function actualize(DateTimeImmutable $date): void
     {
         $this->logger->info('Start actualization of RNBO datasource');
         try {
             $json = $this->download($date);
-        } catch(ClientException | ServerException | InvalidArgumentException $e) {
+        } catch(DownloaderException | InvalidArgumentException $e) {
             $this->logger->critical($e->getMessage());
             return;
         } catch (JsonException $e) {
@@ -80,7 +76,7 @@ class Rnbo implements DataSource
 
                 $this->connection->insert($table, $common + $custom);
 
-            } catch (Exception | CommonException $e) {
+            } catch (InvalidArgumentException | CommonException $e) {
                 $this->logger->warning($e->getMessage());
                 continue;
             }
@@ -108,9 +104,12 @@ class Rnbo implements DataSource
         ];
     }
 
+    /** @noinspection PhpUndefinedMethodInspection */
     private function download(DateTimeImmutable $date): array
     {
-        $response = $this->http->request('GET', 'https://api-covid19.rnbo.gov.ua/data?to='.$date->format('Y-m-d'), [
+        $link = 'https://api-covid19.rnbo.gov.ua/data?to='.$date->format('Y-m-d');
+
+        $result = $this->downloader->json('rnbo')->download($link, [
             'verify_peer' => false,
             'headers' => [
                 'Connection: keep-alive',
@@ -124,18 +123,11 @@ class Rnbo implements DataSource
                 'Referer: https://covid19.rnbo.gov.ua/',
             ]
         ]);
-        $content = $response->getContent();
+        $content = $result->content;
 
         $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         Assert::keyExists($data, 'ukraine');
         Assert::keyExists($data, 'world');
-
-        $dir = $this->downloadDir.'/rnbo/';
-        if (!file_exists($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $this->downloadDir));
-        }
-        $filename = $dir.date('Y_m_d_H_i').'.json';
-        file_put_contents($filename, $content);
 
         return $data;
     }

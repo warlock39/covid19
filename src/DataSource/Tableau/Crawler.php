@@ -3,9 +3,8 @@
 
 namespace App\DataSource\Tableau;
 
-use App\DataSource\Exception;
+use App\DataSource\Downloader\Downloader;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use SplFileObject;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -14,62 +13,39 @@ use function json_decode;
 
 class Crawler
 {
-    private string $downloadDir;
     private LoggerInterface $logger;
     private HttpClientInterface $http;
+    private Downloader $downloader;
 
     public function __construct(
         HttpClientInterface $http,
-        string $actualizerDir,
+        Downloader $downloader,
         LoggerInterface $logger
     ) {
-        $this->downloadDir = $actualizerDir;
         $this->logger = $logger;
         $this->http = $http;
+        $this->downloader = $downloader;
     }
     /**
-     * @throws Exception
      * @noinspection PhpRedundantCatchClauseInspection
+     * @noinspection PhpUndefinedMethodInspection
      */
     public function grab(): string
     {
-        $this->logger->info('Downloading CSV file...');
-
-        $dir = $this->downloadDir . '/tableau/';
-        if (!file_exists($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $this->downloadDir));
-        }
-
         $link1 = 'https://public.tableau.com/vizql/w/monitor_15841091301660/v/sheet0/vud/sessions/%s/views/7294020847002097674_2837170078324805029?csv=true&showall=true';
         $link2 = 'https://public.tableau.com/vizql/w/monitor_15841091301660/v/sheet0/viewData/sessions/%s/views/7294020847002097674_2837170078324805029?csv=true&showall=true';
 
-        $sessionId = $this->resolveSessionId();
-
-        $download = function ($link) use ($sessionId) : string {
-            $link = sprintf($link, $sessionId);
-            $response = $this->http->request('GET', $link);
-
-            $contentType = $response->getHeaders()['content-type'][0] ?? '';
-            if ($contentType !== 'text/csv;charset=utf-8') {
-                throw Exception::contentTypeNotCsv();
-            }
-            return $response->getContent();
-        };
+        $download = fn($link) => $this->downloader->csv('tableau')->download(sprintf($link, $this->resolveSessionId()));
 
         try {
-            $content = $download($link1);
-        } catch (ClientException $e) {
-            throw Exception::csvNotDownloaded($e->getMessage());
+            $this->logger->info('Try download CSV from Link1');
+            $result = $download($link1);
         } catch (Exception $e) {
-            $content = $download($link2);
+            $this->logger->info('Try download CSV from Link2');
+            $result = $download($link2);
         }
 
-        $filename = $dir . date('Y_m_d_H_i') . '.csv';
-        file_put_contents($filename, $content);
-
-        $this->logger->info('CSV file has been downloaded');
-
-        return $filename;
+        return $result->filename;
     }
     public function readCsv(string $filename, MappingSet $mappingSet): iterable
     {
@@ -99,6 +75,7 @@ class Crawler
      */
     private function resolveSessionId()
     {
+        $this->logger->info('Multi-stage process of building download links started');
         $bootstrapSessionId = $this->bootstrapSessionId();
 
         $url = 'https://public.tableau.com/vizql/w/monitor_15841091301660/v/sheet0/bootstrapSession/sessions/%s';
@@ -126,6 +103,7 @@ class Crawler
         if ($sessionId === null) {
             throw Exception::sessionIdResolveFailed('Parsing got no results');
         }
+        $this->logger->info('Link successfully built');
         return $sessionId;
     }
     private function bootstrapSessionId()

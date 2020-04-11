@@ -3,7 +3,7 @@
 namespace App\Cases;
 
 
-use App\DataSource\Exception;
+use App\Exception;
 use Doctrine\DBAL\Connection;
 
 class DataProviderFactory

@@ -6,6 +6,7 @@ namespace App\DataSource;
 
 
 use App\DataSource\Tableau\Crawler;
+use App\DataSource\Tableau\Exception;
 use App\DataSource\Tableau\Geocoder;
 use App\DataSource\Tableau\Hospital;
 use App\DataSource\Tableau\InvalidRecord;
@@ -15,8 +16,7 @@ use App\When;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use Symfony\Component\HttpClient\Exception\ClientException;
+use Symfony\Component\HttpClient\Exception\TransportException;
 
 use function count;
 
@@ -41,12 +41,13 @@ class Tableau implements DataSource
         $this->mappingSet = MappingSet::active();
     }
 
+    /** @noinspection PhpRedundantCatchClauseInspection */
     public function actualize(DateTimeImmutable $date): void
     {
         $this->logger->info('Start actualization of Tableau datasource');
         try {
             $csv = $this->crawler->grab();
-        } catch (RuntimeException | ClientException | Exception $e) {
+        } catch (Downloader\Exception | Exception | TransportException $e) {
             $this->logger->critical($e->getMessage());
             return;
         }

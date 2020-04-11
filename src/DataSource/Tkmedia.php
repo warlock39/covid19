@@ -3,13 +3,13 @@ declare(strict_types=1);
 namespace App\DataSource;
 
 use App\Cases\Tkmedia as TkmediaDataProvider;
+use App\DataSource\Downloader\Downloader;
+use App\DataSource\Downloader\Exception as DownloaderException;
 use App\Exception;
 use App\States;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use ErrorException;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
 
 class Tkmedia implements DataSource
@@ -17,24 +17,33 @@ class Tkmedia implements DataSource
     private Connection $connection;
     private TkmediaDataProvider $dataProvider;
     private LoggerInterface $logger;
-    private string $downloadDir;
+    private Downloader $downloader;
 
-    public function __construct(Connection $connection, string $actualizerDir, LoggerInterface $logger, TkmediaDataProvider $dataProvider)
+    public function __construct(
+        Connection $connection,
+        Downloader $downloader,
+        LoggerInterface $logger,
+        TkmediaDataProvider $dataProvider
+    )
     {
         $this->connection = $connection;
         $this->dataProvider = $dataProvider;
-        $this->downloadDir = $actualizerDir;
         $this->logger = $logger;
+        $this->downloader = $downloader;
     }
 
+    /**
+     * @noinspection PhpUndefinedMethodInspection
+     * @noinspection PhpRedundantCatchClauseInspection
+     */
     public function actualize(DateTimeImmutable $date): void
     {
         $this->logger->info('Start actualization of Tkmedia datasource');
         $dateStr = $date->format('Y-m-d');
 
         try {
-            $html = $this->downloadHtml($dateStr);
-        } catch(ErrorException | RuntimeException$e) {
+            $html = $this->downloader->html('tkmedia')->download("https://tk.media/coronavirus/{$dateStr}")->content;
+        } catch(DownloaderException $e) {
             $this->logger->critical($e->getMessage());
             return;
         }
@@ -79,23 +88,6 @@ class Tkmedia implements DataSource
         }
         array_shift($today); // remove "totals" row
         return $today;
-    }
-
-    /**
-     * @throws ErrorException
-     * @noinspection PhpDocRedundantThrowsInspection
-     */
-    private function downloadHtml(string $date): string
-    {
-        $dir = $this->downloadDir.'/tkmedia/';
-        if (!file_exists($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $this->downloadDir));
-        }
-        $destination = $dir.date('Y_m_d_H_i').'.html';
-        $source = "https://tk.media/coronavirus/{$date}";
-        copy($source, $destination);
-
-        return file_get_contents($destination);
     }
 
     /**

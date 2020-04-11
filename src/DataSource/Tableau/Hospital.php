@@ -4,7 +4,6 @@
 namespace App\DataSource\Tableau;
 
 
-use App\DataSource\Exception;
 use App\States;
 use Geocoder\Exception\CollectionIsEmpty;
 use Geocoder\Model\Coordinates;
