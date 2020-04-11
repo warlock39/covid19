@@ -10,7 +10,7 @@ class MappingSet
 {
     public const V_2020_03_28 = '2020-03-28';
     public const V_2020_03_30 = '2020-03-30';
-    public const V_2020_04_09 = '2020-04-09';
+    public const V_2020_04_11 = '2020-04-11';
 
     private string $version;
 
@@ -20,14 +20,14 @@ class MappingSet
 
     public static function active(): self
     {
-        return new self(self::V_2020_04_09);
+        return new self(self::V_2020_04_11);
     }
     public function __construct(string $version)
     {
         Assert::oneOf($version, [
             self::V_2020_03_28,
             self::V_2020_03_30,
-            self::V_2020_04_09,
+            self::V_2020_04_11,
         ]);
         $this->version = $version;
         $this->cntCols = count(array_keys(self::$maps[$this->version]));
@@ -62,7 +62,7 @@ class MappingSet
         return $map;
     }
     private static array $maps = [
-        self::V_2020_04_09 => [
+        self::V_2020_04_11 => [
             '﻿Info' => null,
             'max date' => null,
             'type' => Record::PATIENT_STATUS,
@@ -81,6 +81,7 @@ class MappingSet
             'new_recover'  => Record::RECOVERED_NEW,
             'new_susp'     => Record::SUSPICION_NEW,
             'pending_susp' => Record::SUSPICION_ACTIVE,
+            'registration_area' => null,
             'Область' => Record::STATE,
             'total_area' => null,
             'zvit_date' => Record::REPORT_DATE,

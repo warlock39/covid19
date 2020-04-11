@@ -55,7 +55,7 @@ class Tableau implements DataSource
         $this->saveRawData($data);
         $this->aggregateOperationalStat();
         $this->actualizeHospitalsInfo();
-        $this->aggregateHospitalsStat($date);
+        $this->aggregateHospitalsStat();
 
         $this->logger->info('End of actualization of Tableau datasource');
     }
@@ -108,54 +108,50 @@ SQL
         $this->connection->commit();
     }
 
-    private function aggregateHospitalsStat(DateTimeImmutable $date): void
+    private function aggregateHospitalsStat(): void
     {
         $this->logger->info('Aggregate hospitals data by RAW data');
 
         $this->connection->beginTransaction();
-        $this->connection->executeUpdate('DELETE FROM hospital_stat WHERE report_date = :date', [
-            'date' => $dateStr = $date->modify('-1day')->format('Y-m-d'),
-        ]);
+        $this->connection->executeUpdate('TRUNCATE hospital_stat ');
         $this->connection->executeQuery(
             <<<SQL
 INSERT INTO hospital_stat
 WITH stat AS (
     SELECT
-      report_date::date AS report_date,
-      state_id,
-      hospital,
-      edrpo,
-      SUM(suspicion_active) suspicion,
-      SUM(confirmed_active) confirmed,
-      SUM(deaths_new) deaths,
-      SUM(recovered_new) recovered,
-      SUM(seats_hospitalization) seats,
-      SUM(ventilators) ventilators
+        report_date,
+        state_id,
+        COALESCE(hospital, 'self-isolation') hospital,
+        edrpo,
+        SUM(suspicion_new) suspicion_new,
+        SUM(confirmed_new) confirmed_new,
+        SUM(deaths_new) deaths_new,
+        SUM(recovered_new) recovered_new,
+        SUM(suspicion_active) suspicion_active,
+        SUM(confirmed_active) confirmed_active
     FROM cases_tableau_raw
     WHERE
-          actualized_at = (SELECT MAX(actualized_at) FROM cases_tableau_raw)
-      AND report_date::date = :date
-      AND LOWER(edrpo) != 'самоізоляція'
+            actualized_at = (SELECT MAX(actualized_at) FROM cases_tableau_raw)
     GROUP BY report_date, state_id, hospital, edrpo
-    ORDER BY report_date DESC, confirmed DESC
+    ORDER BY report_date DESC, confirmed_new DESC
 )
 SELECT 
       report_date,
       s.state_id,
       hospital,
       edrpo,
-      suspicion,
-      confirmed,
-      deaths,
-      recovered,
-      seats,
-      ventilators,
+      suspicion_new,
+      confirmed_new,
+      deaths_new,
+      recovered_new,
+      suspicion_active,
+      confirmed_active,
       h.lat,
       h.long,
       h.address
 FROM stat s LEFT JOIN hospital h USING(edrpo)
 
-SQL, [ 'date' => $dateStr ]);
+SQL);
         $this->connection->commit();
     }
 

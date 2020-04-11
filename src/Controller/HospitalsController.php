@@ -24,13 +24,20 @@ class HospitalsController extends AbstractController
     /**
      * @Route("/stat/new", name="statNew")
      */
-    public function stat(): JsonResponse
+    public function new(): JsonResponse
     {
         $data = $this->stat->new();
         if (empty($data)) {
             $data = $this->stat->at(When::yesterday());
         }
         return $this->json($data);
+    }
+    /**
+     * @Route("/stat/cumulative", name="statCumulative")
+     */
+    public function cumulative(): JsonResponse
+    {
+        return $this->json($this->stat->by(When::today()));
     }
     /**
      * @Route("/stat/daily", name="statDaily")
